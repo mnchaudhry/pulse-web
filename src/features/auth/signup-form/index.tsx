@@ -14,8 +14,20 @@ const inputClass = (hasError: boolean) =>
   )
 
 export const SignupForm = () => {
-  const { form, onSubmit, timezone } = useSignupForm()
+  const { form, onSubmit, timezone, authError, needsConfirmation, isSubmitting } = useSignupForm()
   const { errors } = form.formState
+
+  if (needsConfirmation) {
+    return (
+      <div className="w-full max-w-[368px] text-center">
+        <h1 className="mb-1.5 text-[26px] font-bold tracking-[-.5px]">Confirm your email</h1>
+        <p className="mb-7 text-[13.5px] leading-[1.6] text-ink-3">
+          We sent a confirmation link to your inbox. Click it to finish setting up your account.
+        </p>
+        <Link href={routes.login} className="text-[13px] font-semibold text-pulse">Back to log in</Link>
+      </div>
+    )
+  }
 
   return (
     <div className="w-full max-w-[368px]">
@@ -63,11 +75,16 @@ export const SignupForm = () => {
           </span>
         </div>
 
+        {authError && (
+          <p className="mb-4 text-[12.5px] text-danger">{authError}</p>
+        )}
+
         <button
           type="submit"
-          className="w-full rounded-[10px] bg-pulse p-[13px] text-sm font-semibold text-white shadow-[0_6px_16px_rgba(0,94,164,.24)] transition-colors hover:bg-pulse-bright"
+          disabled={isSubmitting}
+          className="w-full rounded-[10px] bg-pulse p-[13px] text-sm font-semibold text-white shadow-[0_6px_16px_rgba(0,94,164,.24)] transition-colors hover:bg-pulse-bright disabled:opacity-60"
         >
-          Create account
+          {isSubmitting ? 'Creating account…' : 'Create account'}
         </button>
       </form>
 

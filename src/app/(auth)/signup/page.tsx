@@ -1,3 +1,4 @@
+import { Suspense } from 'react'
 import { BrandPanel } from '@/features/auth/components/brand-panel'
 import { SignupForm } from '@/features/auth/signup-form'
 
@@ -29,7 +30,9 @@ const SignupPage = () => {
         </div>
       </BrandPanel>
       <div className="flex flex-1 items-center justify-center bg-base p-12">
-        <SignupForm />
+        <Suspense>
+          <SignupForm />
+        </Suspense>
       </div>
     </div>
   )

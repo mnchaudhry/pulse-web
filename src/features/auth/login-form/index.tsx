@@ -14,7 +14,7 @@ const inputClass = (hasError: boolean) =>
   )
 
 export const LoginForm = () => {
-  const { form, onSubmit } = useLoginForm()
+  const { form, onSubmit, authError, isSubmitting } = useLoginForm()
   const { errors } = form.formState
 
   return (
@@ -47,15 +47,20 @@ export const LoginForm = () => {
         <input
           id="password"
           type="password"
-          className={cn(inputClass(!!errors.password), 'mb-6')}
+          className={cn(inputClass(!!errors.password), 'mb-2')}
           {...form.register('password')}
         />
 
+        {authError && (
+          <p className="mb-3 text-[12.5px] text-danger">{authError}</p>
+        )}
+
         <button
           type="submit"
-          className="w-full rounded-[10px] bg-pulse p-[13px] text-sm font-semibold text-white shadow-[0_6px_16px_rgba(0,94,164,.24)] transition-colors hover:bg-pulse-bright"
+          disabled={isSubmitting}
+          className="mt-4 w-full rounded-[10px] bg-pulse p-[13px] text-sm font-semibold text-white shadow-[0_6px_16px_rgba(0,94,164,.24)] transition-colors hover:bg-pulse-bright disabled:opacity-60"
         >
-          Log in
+          {isSubmitting ? 'Logging in…' : 'Log in'}
         </button>
       </form>
 

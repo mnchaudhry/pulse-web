@@ -1,15 +1,27 @@
 'use client'
 
-interface GoogleButtonProps {
-  onClick?: () => void
-}
+import { useSearchParams } from 'next/navigation'
+import { routes } from '@/constants/routes'
+import { createBrowserClient } from '@/lib/supabase/browser-client'
 
-// TODO (US-01): wire to supabase.auth.signInWithOAuth({ provider: 'google' })
-export const GoogleButton = ({ onClick }: GoogleButtonProps) => {
+// US-01: Google OAuth. Redirects through /auth/callback, which exchanges the
+// code for a session and forwards to `next` (extension handoff or overview).
+export const GoogleButton = () => {
+  const params = useSearchParams()
+
+  const signIn = async () => {
+    const next = params.get('source') === 'extension' ? routes.connectExtension : routes.overview
+    const supabase = createBrowserClient()
+    await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: { redirectTo: `${window.location.origin}/auth/callback?next=${next}` },
+    })
+  }
+
   return (
     <button
       type="button"
-      onClick={onClick}
+      onClick={signIn}
       className="mb-[18px] flex w-full items-center justify-center gap-2.5 rounded-[10px] border border-edge-strong bg-surface p-3 text-[13.5px] font-semibold shadow-[0_1px_2px_rgba(15,23,42,.04)] transition-colors hover:border-pulse-soft hover:bg-chip"
     >
       <svg width="17" height="17" viewBox="0 0 24 24">

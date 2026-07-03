@@ -2,8 +2,10 @@
 
 import type { ReactNode } from 'react'
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { routes } from '@/constants/routes'
+import { useCurrentUser } from '@/hooks/use-current-user'
+import { createBrowserClient } from '@/lib/supabase/browser-client'
 import { cn } from '@/utils/cn'
 
 interface NavItem {
@@ -82,6 +84,20 @@ const NAV_GROUPS: NavGroup[] = [
 
 export const AppSidebar = () => {
   const pathname = usePathname()
+  const router = useRouter()
+  const { user } = useCurrentUser()
+
+  const email = user?.email ?? ''
+  const displayName = (user?.user_metadata?.full_name as string | undefined)
+    ?? (email ? email.split('@')[0] : 'Account')
+  const initial = (displayName || 'A').charAt(0).toUpperCase()
+
+  const signOut = async () => {
+    const supabase = createBrowserClient()
+    await supabase.auth.signOut()
+    router.replace(routes.login)
+    router.refresh()
+  }
 
   return (
     <aside className="sticky top-0 flex h-screen w-[236px] flex-none flex-col gap-1 overflow-y-auto border-r border-hairline bg-surface px-3.5 py-[22px]">
@@ -131,12 +147,22 @@ export const AppSidebar = () => {
 
       <div className="mt-auto flex items-center gap-2.5 border-t border-hairline px-2 pb-0.5 pt-3.5">
         <div className="flex h-[30px] w-[30px] items-center justify-center rounded-full bg-[linear-gradient(135deg,#d5e3fc,#b9c7df)] text-xs font-semibold text-[#5B6B87]">
-          N
+          {initial}
         </div>
-        <div className="leading-[1.3]">
-          <div className="text-[12.5px] font-medium">Nauman</div>
-          <div className="text-[10.5px] text-ink-3">nauman@pulse.app</div>
+        <div className="min-w-0 leading-[1.3]">
+          <div className="truncate text-[12.5px] font-medium">{displayName}</div>
+          <div className="truncate text-[10.5px] text-ink-3">{email || 'Not signed in'}</div>
         </div>
+        <button
+          type="button"
+          onClick={signOut}
+          title="Sign out"
+          className="ml-auto flex h-7 w-7 flex-none items-center justify-center rounded-lg text-ink-3 transition-colors hover:bg-tint hover:text-ink"
+        >
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7">
+            <path d="M15 3h4a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1h-4M10 17l5-5-5-5M15 12H3" />
+          </svg>
+        </button>
       </div>
     </aside>
   )

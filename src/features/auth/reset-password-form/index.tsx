@@ -24,7 +24,7 @@ export const ResetPasswordForm = () => {
   return (
     <div className="w-full max-w-[368px]">
       <h1 className="mb-1.5 text-[26px] font-bold tracking-[-.5px]">Reset your password</h1>
-      <p className="mb-7 text-[13.5px] text-ink-3">We'll email you a link to set a new one.</p>
+      <p className="mb-7 text-[13.5px] text-ink-3">We’ll email you a link to set a new one.</p>
 
       <form onSubmit={onSubmit} noValidate>
         <label htmlFor="email" className="mb-[7px] block text-xs font-medium text-ink-2">Email</label>
