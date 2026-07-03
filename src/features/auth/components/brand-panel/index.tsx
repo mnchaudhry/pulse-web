@@ -39,7 +39,7 @@ interface BrandPanelProps {
 // Left-hand azure gradient panel shared by /login and /signup.
 export const BrandPanel = ({ headline, description, children }: BrandPanelProps) => {
   return (
-    <div className="relative flex min-w-0 flex-[1.05] flex-col justify-between overflow-hidden bg-[linear-gradient(155deg,#0477cd_0%,#005ea4_48%,#004881_100%)] p-[52px_54px] text-white max-lg:hidden">
+    <div className="relative flex min-w-0 flex-2 flex-col justify-between overflow-hidden bg-[linear-gradient(155deg,#0477cd_0%,#005ea4_48%,#004881_100%)] p-[52px_54px] text-white max-lg:hidden">
       <svg
         width="640"
         height="200"

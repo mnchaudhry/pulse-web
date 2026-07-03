@@ -28,7 +28,7 @@ export const OnboardingDisclosure = () => {
         <PulseLogo size={44} />
         <h1 className="mb-1.5 mt-[18px] text-[22px] font-semibold tracking-[-.3px]">Before Pulse starts</h1>
         <p className="max-w-[400px] text-center text-[13.5px] text-ink-2">
-          Here is exactly what will and won't be recorded. Nothing is captured until you confirm.
+          Here is exactly what will and won’t be recorded. Nothing is captured until you confirm.
         </p>
       </div>
 

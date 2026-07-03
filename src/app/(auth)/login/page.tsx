@@ -12,7 +12,7 @@ const LoginPage = () => {
       >
         <ProductPreview />
       </BrandPanel>
-      <div className="flex flex-1 items-center justify-center bg-base p-12">
+      <div className="flex flex-3 items-center justify-center bg-base p-12">
         <Suspense>
           <LoginForm />
         </Suspense>

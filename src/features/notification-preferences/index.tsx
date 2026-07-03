@@ -1,33 +1,23 @@
 'use client'
 
-import { useState } from 'react'
+import type { NotificationPrefs } from '@/services/account/update-notification-prefs'
 import { cn } from '@/utils/cn'
+import { useNotificationPreferences } from './use-notification-preferences'
 
-interface NotifRow {
-  key: string
-  title: string
-  desc: string
-}
-
-const ROWS: NotifRow[] = [
-  { key: 'chrome', title: 'Chrome notifications', desc: 'A once-a-day summary and flagged anomalies, delivered in the browser.' },
-  { key: 'emailDaily', title: 'Daily email digest', desc: 'A short recap of yesterday, sent each morning.' },
-  { key: 'emailWeekly', title: 'Weekly email digest', desc: 'A wider view of the week every Monday.' },
+const ROWS: { key: keyof NotificationPrefs, title: string, desc: string }[] = [
+  { key: 'notif_chrome', title: 'Chrome notifications', desc: 'A once-a-day summary and flagged anomalies, delivered in the browser.' },
+  { key: 'notif_email_daily', title: 'Daily email digest', desc: 'A short recap of yesterday, sent each morning.' },
+  { key: 'notif_email_weekly', title: 'Weekly email digest', desc: 'A wider view of the week every Monday.' },
 ]
 
 export const NotificationPreferences = () => {
-  const [prefs, setPrefs] = useState<Record<string, boolean>>({
-    chrome: true,
-    emailDaily: false,
-    emailWeekly: true,
-  })
-
-  const toggle = (key: string) => setPrefs(prev => ({ ...prev, [key]: !prev[key] }))
+  const { profileQuery, update } = useNotificationPreferences()
+  const profile = profileQuery.data
 
   return (
     <div className="flex flex-col gap-3">
       {ROWS.map((row) => {
-        const on = prefs[row.key]
+        const on = profile ? profile[row.key] : false
         return (
           <div
             key={row.key}
@@ -39,10 +29,11 @@ export const NotificationPreferences = () => {
             </div>
             <button
               type="button"
-              onClick={() => toggle(row.key)}
+              disabled={!profile}
+              onClick={() => update.mutate({ [row.key]: !on })}
               aria-pressed={on}
               className={cn(
-                'relative h-[26px] w-[46px] flex-none rounded-[14px] border transition-colors',
+                'relative h-[26px] w-[46px] flex-none rounded-[14px] border transition-colors disabled:opacity-50',
                 on ? 'border-pulse bg-pulse' : 'border-edge-strong bg-[#e0e3e5]',
               )}
             >

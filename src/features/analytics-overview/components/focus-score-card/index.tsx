@@ -1,10 +1,13 @@
-import { focusAverage, focusScore } from '../../overview.data'
-
 const RADIUS = 70
 const CIRCUMFERENCE = 2 * Math.PI * RADIUS
 
-export const FocusScoreCard = () => {
-  const offset = CIRCUMFERENCE * (1 - focusScore / 100)
+interface Props {
+  score: number
+  average: number
+}
+
+export const FocusScoreCard = ({ score, average }: Props) => {
+  const offset = CIRCUMFERENCE * (1 - score / 100)
 
   return (
     <div className="flex flex-col rounded-[14px] border border-edge bg-surface p-5 shadow-[0_4px_16px_rgba(15,23,42,.05)]">
@@ -29,16 +32,16 @@ export const FocusScoreCard = () => {
             />
           </svg>
           <div className="absolute inset-0 flex flex-col items-center justify-center">
-            <span className="mono text-[38px] font-semibold tracking-[-1px]">{focusScore}</span>
+            <span className="mono text-[38px] font-semibold tracking-[-1px]">{score}</span>
             <span className="mt-0.5 text-[11px] text-ink-3">of 100</span>
           </div>
         </div>
       </div>
 
       <div className="text-center text-xs text-ink-2">
-        Steady with your 7-day average of
+        Your 7-day average is
         {' '}
-        <span className="mono text-ink-2">{focusAverage}</span>
+        <span className="mono text-ink-2">{average}</span>
       </div>
     </div>
   )

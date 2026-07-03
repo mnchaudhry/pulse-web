@@ -1,6 +1,6 @@
-import type { Insight } from '../../insights.data'
+import type { InsightView } from '../../insight-meta'
 
-export const InsightCard = ({ insight }: { insight: Insight }) => {
+export const InsightCard = ({ insight }: { insight: InsightView }) => {
   return (
     <div className="flex overflow-hidden rounded-[14px] border border-edge bg-surface shadow-[0_4px_16px_rgba(15,23,42,.05)] transition-colors hover:border-pulse-soft">
       <div className="w-[3px] flex-none" style={{ background: insight.tint }} />

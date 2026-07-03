@@ -1,20 +1,19 @@
-import { trend } from '../../overview.data'
+import type { TrendData } from '../../types'
 
 const W = 640
 const H = 200
 const PAD = 14
 
-const x = (i: number) => (i / (trend.week.length - 1)) * W
-const y = (v: number) => H - PAD - (v / trend.max) * (H - PAD * 2)
+export const TrendChart = ({ trend }: { trend: TrendData }) => {
+  const x = (i: number) => (i / Math.max(1, trend.week.length - 1)) * W
+  const y = (v: number) => H - PAD - (v / trend.max) * (H - PAD * 2)
+  const toPath = (values: number[]) =>
+    values.map((v, i) => `${i ? 'L' : 'M'}${x(i).toFixed(1)} ${y(v).toFixed(1)}`).join(' ')
 
-const toPath = (values: number[]) =>
-  values.map((v, i) => `${i ? 'L' : 'M'}${x(i).toFixed(1)} ${y(v).toFixed(1)}`).join(' ')
+  const linePath = toPath(trend.week)
+  const prevPath = toPath(trend.prev)
+  const areaPath = `${linePath} L${W} ${H} L0 ${H} Z`
 
-const linePath = toPath(trend.week)
-const prevPath = toPath(trend.prev)
-const areaPath = `${linePath} L${W} ${H} L0 ${H} Z`
-
-export const TrendChart = () => {
   return (
     <div className="rounded-[14px] border border-edge bg-surface p-5 shadow-[0_4px_16px_rgba(15,23,42,.05)]">
       <div className="mb-1 flex items-center justify-between">
@@ -47,7 +46,7 @@ export const TrendChart = () => {
       </svg>
 
       <div className="mono mt-2.5 flex justify-between text-[11px] text-ink-3">
-        {trend.days.map(day => <span key={day}>{day}</span>)}
+        {trend.days.map((day, i) => <span key={`${day}-${i}`}>{day}</span>)}
       </div>
     </div>
   )
