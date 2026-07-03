@@ -17,6 +17,36 @@ const colorFor = (category: string) =>
 const toMinutes = (seconds: number) => Math.round(seconds / 60)
 const hhmm = (iso: string) => format(new Date(iso), 'H:mm')
 
+// US-44: wall-clock active time with overlaps merged, so two devices active at
+// once don't double-count. Approximates each event's active window as
+// [started, started + active_seconds].
+const mergedActiveSeconds = (rows: RawEventRow[]): number => {
+  const intervals = rows
+    .map((r) => {
+      const start = new Date(r.started_at).getTime()
+      return [start, start + r.active_seconds * 1000] as const
+    })
+    .sort((a, b) => a[0] - b[0])
+
+  let total = 0
+  let curStart = -1
+  let curEnd = -1
+  for (const [start, end] of intervals) {
+    if (start > curEnd) {
+      if (curEnd >= 0)
+        total += curEnd - curStart
+      curStart = start
+      curEnd = end
+    }
+    else if (end > curEnd) {
+      curEnd = end
+    }
+  }
+  if (curEnd >= 0)
+    total += curEnd - curStart
+  return Math.round(total / 1000)
+}
+
 const WORK_CATEGORIES = new Set(['Dev', 'Work'])
 const isWorkHour = (iso: string) => {
   const h = new Date(iso).getHours()
@@ -40,6 +70,7 @@ export function computeOverview(
   rows: RawEventRow[],
   rangeFrom: Date,
   now: Date = new Date(),
+  combined = false,
 ): OverviewData {
   const inRange = rows.filter(r => new Date(r.started_at) >= rangeFrom)
 
@@ -49,6 +80,8 @@ export function computeOverview(
     catSeconds.set(r.category, (catSeconds.get(r.category) ?? 0) + r.active_seconds)
 
   const totalSeconds = [...catSeconds.values()].reduce((a, b) => a + b, 0)
+  // Combined views merge overlapping windows; single-device sums directly.
+  const displaySeconds = combined ? mergedActiveSeconds(inRange) : totalSeconds
   const categories: CategorySlice[] = [...catSeconds.entries()]
     .sort((a, b) => b[1] - a[1])
     .map(([name, sec]) => ({
@@ -125,14 +158,14 @@ export function computeOverview(
   const top = categories[0]
   const longest = longestBlocks[0]
   const stats: StatCard[] = [
-    { label: 'Total active', value: fmt(toMinutes(totalSeconds)), delta: 'active, focused time', tint: '#005ea4' },
+    { label: 'Total active', value: fmt(toMinutes(displaySeconds)), delta: 'active, focused time', tint: '#005ea4' },
     { label: 'Focus score', value: String(focusScore), delta: `steady · 7-day avg ${focusAverage}`, tint: '#005ea4' },
     { label: 'Longest block', value: longest?.dur ?? '0m', delta: longest ? `${longest.range} · ${longest.label.split(' · ')[0]}` : 'no activity yet', tint: '#0E7C86' },
     { label: 'Top category', value: top?.name ?? '—', delta: top ? `${top.dur} · ${top.pct}% of range` : 'no activity yet', tint: '#0E7C86' },
   ]
 
   return {
-    totalActive: fmt(toMinutes(totalSeconds)),
+    totalActive: fmt(toMinutes(displaySeconds)),
     hasData: inRange.length > 0,
     categories,
     topDomains,

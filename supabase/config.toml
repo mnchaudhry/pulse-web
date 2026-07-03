@@ -1,2 +1,16 @@
 # Supabase CLI config — run `supabase init` to populate, then `supabase link`
 project_id = "pulse"
+
+# Scheduled jobs are triggered by cron (no user JWT), so they skip JWT
+# verification. They take no user input and only use the service role internally.
+[functions.aggregate-daily]
+verify_jwt = false
+
+[functions.generate-insights]
+verify_jwt = false
+
+[functions.send-digests]
+verify_jwt = false
+
+# delete-account keeps verify_jwt = true (default): it acts on the caller's own
+# account and must see their JWT.

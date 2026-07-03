@@ -5,6 +5,8 @@ import { CATEGORY_COLORS } from '@/constants/categories'
 import { cn } from '@/utils/cn'
 import { useCategoryRules } from './use-category-rules'
 
+const ACCOUNT_SCOPE = 'account'
+
 const CATEGORIES = Object.keys(CATEGORY_COLORS)
 const colorFor = (category: string) =>
   (CATEGORY_COLORS as Record<string, string>)[category] ?? CATEGORY_COLORS.Uncategorized
@@ -61,11 +63,24 @@ const CategorySelect = ({ value, onChange }: { value: string, onChange: (categor
 }
 
 export const CategoryRules = () => {
-  const { rulesQuery, override } = useCategoryRules()
+  const [scope, setScope] = useState(ACCOUNT_SCOPE)
+  const { rulesQuery, devices, override } = useCategoryRules(scope === ACCOUNT_SCOPE ? null : scope)
   const rules = rulesQuery.data ?? []
 
   return (
     <>
+      <div className="mb-4 flex items-center gap-2.5">
+        <span className="text-[12.5px] text-ink-2">Scope</span>
+        <select
+          value={scope}
+          onChange={e => setScope(e.target.value)}
+          className="rounded-[9px] border border-edge bg-chip px-3 py-2 text-[13px] text-ink outline-none focus:border-pulse"
+        >
+          <option value={ACCOUNT_SCOPE}>Account (all devices)</option>
+          {devices.map(d => <option key={d.id} value={d.id}>{d.label}</option>)}
+        </select>
+      </div>
+
       <div className="overflow-hidden rounded-[14px] border border-edge bg-surface shadow-[0_4px_16px_rgba(15,23,42,.05)]">
         <div className="flex border-b border-hairline px-5 py-[13px] text-[11px] font-semibold uppercase tracking-[.06em] text-ink-3">
           <span className="flex-1">Domain</span>

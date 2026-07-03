@@ -18,15 +18,28 @@ const RemoveButton = ({ onClick }: { onClick: () => void }) => (
 )
 
 export const ExcludeList = () => {
-  const { accountRules, deviceRules, add, remove } = useExcludeList()
-  const [draft, setDraft] = useState('')
+  const { accountRules, deviceRules, devices, add, remove } = useExcludeList()
+  const [accountDraft, setAccountDraft] = useState('')
+  const [deviceDraft, setDeviceDraft] = useState('')
+  const [deviceId, setDeviceId] = useState('')
 
-  const submit = () => {
-    const value = draft.trim()
-    if (!value)
+  const deviceLabel = (id: string | null) => devices.find(d => d.id === id)?.label ?? 'Unknown device'
+
+  const addAccount = () => {
+    const pattern = accountDraft.trim()
+    if (!pattern)
       return
-    add.mutate(value)
-    setDraft('')
+    add.mutate({ pattern, deviceId: null })
+    setAccountDraft('')
+  }
+
+  const addDevice = () => {
+    const pattern = deviceDraft.trim()
+    const target = deviceId || devices[0]?.id
+    if (!pattern || !target)
+      return
+    add.mutate({ pattern, deviceId: target })
+    setDeviceDraft('')
   }
 
   return (
@@ -42,15 +55,15 @@ export const ExcludeList = () => {
 
         <div className="mb-4 flex gap-2.5">
           <input
-            value={draft}
-            onChange={event => setDraft(event.target.value)}
-            onKeyDown={event => event.key === 'Enter' && submit()}
+            value={accountDraft}
+            onChange={e => setAccountDraft(e.target.value)}
+            onKeyDown={e => e.key === 'Enter' && addAccount()}
             placeholder="Add a domain or *.pattern"
             className="mono flex-1 rounded-[9px] border border-edge bg-chip px-[13px] py-2.5 text-[13px] text-ink outline-none focus:border-pulse"
           />
           <button
             type="button"
-            onClick={submit}
+            onClick={addAccount}
             disabled={add.isPending}
             className="rounded-[9px] bg-pulse px-[18px] text-[13px] font-semibold text-white transition-colors hover:bg-pulse-bright disabled:opacity-60"
           >
@@ -59,14 +72,9 @@ export const ExcludeList = () => {
         </div>
 
         <div className="flex flex-wrap gap-2">
-          {accountRules.length === 0 && (
-            <span className="text-[12.5px] text-ink-3">No account exclusions yet.</span>
-          )}
+          {accountRules.length === 0 && <span className="text-[12.5px] text-ink-3">No account exclusions yet.</span>}
           {accountRules.map(rule => (
-            <span
-              key={rule.id}
-              className="mono inline-flex items-center gap-[9px] rounded-[8px] border border-edge bg-chip py-[7px] pl-3 pr-2 text-[12.5px]"
-            >
+            <span key={rule.id} className="mono inline-flex items-center gap-[9px] rounded-[8px] border border-edge bg-chip py-[7px] pl-3 pr-2 text-[12.5px]">
               {rule.pattern}
               <RemoveButton onClick={() => remove.mutate(rule.id)} />
             </span>
@@ -81,16 +89,43 @@ export const ExcludeList = () => {
         </div>
         <p className="mb-4 text-[12.5px] text-ink-2">Exclusions scoped to a single device.</p>
 
+        {devices.length === 0
+          ? (
+              <span className="text-[12.5px] text-ink-3">No devices yet.</span>
+            )
+          : (
+              <div className="mb-4 flex gap-2.5">
+                <select
+                  value={deviceId || devices[0]?.id}
+                  onChange={e => setDeviceId(e.target.value)}
+                  className="rounded-[9px] border border-edge bg-chip px-3 py-2.5 text-[13px] text-ink outline-none focus:border-pulse"
+                >
+                  {devices.map(d => <option key={d.id} value={d.id}>{d.label}</option>)}
+                </select>
+                <input
+                  value={deviceDraft}
+                  onChange={e => setDeviceDraft(e.target.value)}
+                  onKeyDown={e => e.key === 'Enter' && addDevice()}
+                  placeholder="Add a domain or *.pattern"
+                  className="mono flex-1 rounded-[9px] border border-edge bg-chip px-[13px] py-2.5 text-[13px] text-ink outline-none focus:border-pulse"
+                />
+                <button
+                  type="button"
+                  onClick={addDevice}
+                  disabled={add.isPending}
+                  className="rounded-[9px] bg-pulse px-[18px] text-[13px] font-semibold text-white transition-colors hover:bg-pulse-bright disabled:opacity-60"
+                >
+                  Add
+                </button>
+              </div>
+            )}
+
         <div className="flex flex-wrap gap-2">
-          {deviceRules.length === 0 && (
-            <span className="text-[12.5px] text-ink-3">No per-device exclusions.</span>
-          )}
+          {deviceRules.length === 0 && <span className="text-[12.5px] text-ink-3">No per-device exclusions.</span>}
           {deviceRules.map(rule => (
-            <span
-              key={rule.id}
-              className="mono inline-flex items-center gap-[9px] rounded-[8px] border border-edge-strong bg-chip py-[7px] pl-3 pr-2 text-[12.5px]"
-            >
+            <span key={rule.id} className="mono inline-flex items-center gap-[9px] rounded-[8px] border border-edge-strong bg-chip py-[7px] pl-3 pr-2 text-[12.5px]">
               {rule.pattern}
+              <span className="text-[10.5px] text-ink-3">{deviceLabel(rule.device_id)}</span>
               <RemoveButton onClick={() => remove.mutate(rule.id)} />
             </span>
           ))}

@@ -8,5 +8,5 @@ import { fetchEventsInRange } from './fetch-events'
 export const getOverview = async (range: RangeKey, deviceId: string | 'combined') => {
   const now = new Date()
   const rows = await fetchEventsInRange({ from: overviewFetchStart(range, now), deviceId })
-  return computeOverview(rows, rangeStart(range, now), now)
+  return computeOverview(rows, rangeStart(range, now), now, deviceId === 'combined')
 }

@@ -15,14 +15,14 @@ const fmt = (seconds: number) => {
   return h ? `${h}h ${String(m % 60).padStart(2, '0')}m` : `${m}m`
 }
 
-interface Ev { user_id: string, category: string, domain: string, active_seconds: number, started_at: string, ended_at: string }
+interface Ev { user_id: string, device_id: string, category: string, domain: string, active_seconds: number, started_at: string, ended_at: string }
 
 Deno.serve(async () => {
   const now = Date.now()
   const since = new Date(now - 14 * 86_400_000).toISOString()
   const { data, error } = await supabase
     .from('raw_events')
-    .select('user_id, category, domain, active_seconds, started_at, ended_at')
+    .select('user_id, device_id, category, domain, active_seconds, started_at, ended_at')
     .gte('started_at', since)
 
   if (error)
@@ -91,6 +91,37 @@ Deno.serve(async () => {
           { k: 'domain', v: longest.domain },
         ],
       })
+    }
+
+    // --- per-device insight (US-51): busiest device today, if >1 device ---
+    const perDevice = new Map<string, Ev[]>()
+    for (const e of todays) {
+      if (!e.device_id)
+        continue
+      perDevice.set(e.device_id, [...(perDevice.get(e.device_id) ?? []), e])
+    }
+    if (perDevice.size >= 2) {
+      const totals = [...perDevice.entries()]
+        .map(([deviceId, evs]) => ({ deviceId, evs, total: evs.reduce((a, e) => a + e.active_seconds, 0) }))
+        .sort((a, b) => b.total - a.total)
+      const busiest = totals[0]
+      if (busiest && busiest.total >= 1200) {
+        const byDomain = new Map<string, number>()
+        for (const e of busiest.evs)
+          byDomain.set(e.domain, (byDomain.get(e.domain) ?? 0) + e.active_seconds)
+        const [domain, sec] = [...byDomain.entries()].sort((a, b) => b[1] - a[1])[0] ?? ['', 0]
+        insights.push({
+          user_id: userId,
+          device_id: busiest.deviceId,
+          kind: 'device',
+          title: 'Most active device today',
+          body: `This device logged ${fmt(busiest.total)} today${domain ? `, led by ${domain} (${fmt(sec)})` : ''} — clearer as a per-device figure than blended.`,
+          payload: [
+            { k: 'device time', v: fmt(busiest.total) },
+            ...(domain ? [{ k: 'top domain', v: domain }] : []),
+          ],
+        })
+      }
     }
   }
 
