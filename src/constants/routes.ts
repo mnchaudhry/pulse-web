@@ -1,0 +1,15 @@
+export const routes = {
+  login: '/login',
+  signup: '/signup',
+  resetPassword: '/reset-password',
+  connectExtension: '/connect-extension',
+  privacy: '/privacy',
+  overview: '/overview',
+  insights: '/insights',
+  devices: '/devices',
+  settingsPrivacy: '/settings/privacy',
+  settingsCategories: '/settings/categories',
+  settingsNotifications: '/settings/notifications',
+  settingsAccount: '/settings/account',
+  bot: '/bot',
+} as const

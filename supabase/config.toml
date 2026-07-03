@@ -1,0 +1,2 @@
+# Supabase CLI config — run `supabase init` to populate, then `supabase link`
+project_id = "pulse"
