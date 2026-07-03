@@ -1,59 +1,17 @@
 'use client'
 
-import { useState } from 'react'
-import type { ChatMessageData } from './components/chat-message'
 import { ChatInput } from './components/chat-input'
 import { ChatMessage } from './components/chat-message'
-
-const INITIAL_MESSAGES: ChatMessageData[] = [
-  {
-    id: 'm1',
-    role: 'user',
-    text: 'How much time did I spend on Social this week?',
-  },
-  {
-    id: 'm2',
-    role: 'bot',
-    text: '3h 12m on Social this week — 18% below your 4-week average of 3h 54m. The biggest single day was Monday at 58m.',
-    cites: [
-      { k: 'Social · this week', v: '3h 12m' },
-      { k: '4-wk avg', v: '3h 54m' },
-      { k: 'peak day', v: 'Mon 58m' },
-    ],
-  },
-]
+import { useBotChat } from './use-bot-chat'
 
 const SUGGESTIONS = [
   'Compare Dev this week vs last',
   'Top domains this month',
-  'When was my longest focus block?',
+  'How much time on Social this week?',
 ]
 
-// Canned reply until /api/bot/chat is wired (US-52..59).
-const cannedReply = (id: string): ChatMessageData => ({
-  id,
-  role: 'bot',
-  text: 'I read your aggregates for that range and answer with the exact figures — this is a static mock, so imagine the cited number here.',
-  cites: [{ k: 'source', v: 'daily_aggregates' }],
-})
-
 export const BotChat = () => {
-  const [messages, setMessages] = useState<ChatMessageData[]>(INITIAL_MESSAGES)
-  const [draft, setDraft] = useState('')
-
-  const send = (text: string) => {
-    const trimmed = text.trim()
-    if (!trimmed)
-      return
-
-    const stamp = `${messages.length}-${trimmed.length}`
-    setMessages(prev => [
-      ...prev,
-      { id: `u-${stamp}`, role: 'user', text: trimmed },
-      cannedReply(`b-${stamp}`),
-    ])
-    setDraft('')
-  }
+  const { messages, draft, setDraft, send, isSending } = useBotChat()
 
   return (
     <div className="flex h-screen flex-col">
@@ -77,6 +35,9 @@ export const BotChat = () => {
           {messages.map(message => (
             <ChatMessage key={message.id} message={message} />
           ))}
+          {isSending && (
+            <div className="mono px-1 text-[12px] text-ink-3">Pulse is reading your aggregates…</div>
+          )}
         </div>
       </div>
 

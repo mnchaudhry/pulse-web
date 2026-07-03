@@ -20,6 +20,7 @@ export type ActivityEvent = z.infer<typeof eventSchema>
 export const ingestPayloadSchema = z.object({
   clientId: z.string().min(1),
   platform: z.string().optional(),
+  label: z.string().optional(),
   events: z.array(eventSchema).min(1).max(500),
 })
 
