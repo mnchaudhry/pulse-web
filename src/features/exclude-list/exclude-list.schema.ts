@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-// TODO: add-domain form schema
+// Add-domain input contract for the exclude-list.
 export const excludeListSchema = z.object({
   domain: z.string().min(1),
 })

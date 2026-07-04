@@ -12,7 +12,10 @@ import { loginFormSchema } from './login-form.schema'
 export const useLoginForm = () => {
   const router = useRouter()
   const params = useSearchParams()
-  const [authError, setAuthError] = useState<string | null>(null)
+  // Surface a failed OAuth / email-link callback (redirected here with ?error).
+  const [authError, setAuthError] = useState<string | null>(
+    params.get('error') === 'auth' ? 'That sign-in link expired or was invalid. Please try again.' : null,
+  )
 
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginFormSchema),

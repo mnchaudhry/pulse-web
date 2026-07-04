@@ -2,13 +2,11 @@ import { NextResponse } from 'next/server'
 import { categoryMap } from '@/constants/category-map'
 import { createTokenClient } from '@/lib/supabase/server-client'
 import { ingestPayloadSchema } from '@/schemas/event.schema'
+import { isPlausibleEvent } from '@/services/ingest/validate-event-timestamps'
 
 // US-19/63: extension ingest. Authenticates the caller's token, validates the
 // batch (Zod + timestamp plausibility), lazily registers the device (US-07/08),
 // resolves categories (overrides win), and inserts as the user (RLS-scoped).
-const MAX_FUTURE_SKEW_MS = 5 * 60_000
-const RETENTION_MS = 90 * 86_400_000
-
 export const POST = async (request: Request) => {
   const authHeader = request.headers.get('Authorization')
   if (!authHeader)
@@ -60,17 +58,7 @@ export const POST = async (request: Request) => {
 
   const now = Date.now()
   const rows = events
-    .filter((e) => {
-      const started = Date.parse(e.startedAt)
-      const ended = Date.parse(e.endedAt)
-      if (Number.isNaN(started) || Number.isNaN(ended) || ended < started)
-        return false
-      if (started > now + MAX_FUTURE_SKEW_MS)
-        return false
-      if (started < now - RETENTION_MS)
-        return false
-      return true
-    })
+    .filter(e => isPlausibleEvent(e, now))
     .map(e => ({
       user_id: user.id,
       device_id: deviceId,
