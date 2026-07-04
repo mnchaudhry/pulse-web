@@ -43,6 +43,11 @@ export async function middleware(request: NextRequest) {
   if (user && isAuthPage) {
     const url = request.nextUrl.clone()
     url.pathname = '/overview'
+    // Already logged in but arriving from the extension → open the connect
+    // modal so the AUTH_SUCCESS handoff can still run (otherwise the extension
+    // never gets a session).
+    const fromExtension = pathname.startsWith('/login') && url.searchParams.get('source') === 'extension'
+    url.search = fromExtension ? 'connect=1' : ''
     return NextResponse.redirect(url)
   }
 
