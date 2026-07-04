@@ -47,6 +47,7 @@ export const LoginForm = () => {
         <input
           id="password"
           type="password"
+          placeholder="••••••••"
           className={cn(inputClass(!!errors.password), 'mb-2')}
           {...form.register('password')}
         />

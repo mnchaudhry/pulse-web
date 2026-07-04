@@ -30,7 +30,13 @@ export const useSignupForm = () => {
     const { data, error } = await supabase.auth.signUp({
       email: values.email,
       password: values.password,
-      options: { data: { home_timezone: detectedTimezone } },
+      options: {
+        data: { home_timezone: detectedTimezone },
+        // Without this, Supabase falls back to its default Site URL on confirm,
+        // which drops straight onto /overview and skips onboarding entirely —
+        // matches the Google/reset-password flows, which already set `next`.
+        emailRedirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(routes.connectExtension)}`,
+      },
     })
 
     if (error) {
