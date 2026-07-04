@@ -126,3 +126,14 @@ body {
   border-color: var(--color-pulse);
   color: #fff;
 }
+/* Override driver.js default hover (light bg) so text stays legible. */
+.pulse-tour .driver-popover-next-btn:hover {
+  background: var(--color-pulse-bright);
+  border-color: var(--color-pulse-bright);
+  color: #fff;
+}
+.pulse-tour .driver-popover-prev-btn:hover {
+  background: var(--color-chip);
+  border-color: var(--color-edge-strong);
+  color: var(--color-ink);
+}
