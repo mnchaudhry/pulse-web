@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { PulseLogo } from '@/components/pulse-logo'
+import { Logo } from '@/components/logo'
 
 const TRUST_CHIPS = [
   {
@@ -57,11 +57,8 @@ export const BrandPanel = ({ headline, description, children }: BrandPanelProps)
           className="[animation:pulseline_4s_linear_infinite]"
         />
       </svg>
-      <div className="relative flex items-center gap-3">
-        <div className="flex h-[38px] w-[38px] items-center justify-center rounded-[11px] border border-white/[.22] bg-white/[.16]">
-          <PulseLogo variant="white" size={24} />
-        </div>
-        <span className="text-lg font-bold tracking-[-.2px]">Pulse</span>
+      <div className="relative">
+        <Logo tone="inverse" size={26} />
       </div>
       <div className="relative max-w-[460px]">
         <h2 className="mb-3.5 text-[34px] font-bold leading-[1.12] tracking-[-.8px]">{headline}</h2>

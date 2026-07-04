@@ -34,7 +34,7 @@ export const SignupForm = () => {
       <h1 className="mb-1.5 text-[26px] font-bold tracking-[-.5px]">Create your account</h1>
       <p className="mb-7 text-[13.5px] text-ink-3">Private by default. Just for you.</p>
 
-      <GoogleButton />
+      <GoogleButton onboard />
 
       <div className="mb-5 flex items-center gap-3 text-[11px] text-ink-3">
         <span className="h-px flex-1 bg-edge" />

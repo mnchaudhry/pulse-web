@@ -2,7 +2,7 @@
 
 import type { SignupFormValues } from './signup-form.schema'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { routes } from '@/constants/routes'
@@ -16,7 +16,6 @@ const detectedTimezone
 
 export const useSignupForm = () => {
   const router = useRouter()
-  const params = useSearchParams()
   const [authError, setAuthError] = useState<string | null>(null)
   const [needsConfirmation, setNeedsConfirmation] = useState(false)
 
@@ -45,10 +44,8 @@ export const useSignupForm = () => {
       return
     }
 
-    const destination = params.get('source') === 'extension'
-      ? routes.connectExtension
-      : routes.overview
-    router.replace(destination)
+    // New accounts always go through onboarding (install extension → tour).
+    router.replace(routes.connectExtension)
     router.refresh()
   })
 

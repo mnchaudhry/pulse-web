@@ -2,7 +2,8 @@ export const routes = {
   login: '/login',
   signup: '/signup',
   resetPassword: '/reset-password',
-  connectExtension: '/connect-extension',
+  // Onboarding is a modal over the dashboard, opened via ?connect=1.
+  connectExtension: '/overview?connect=1',
   privacy: '/privacy',
   overview: '/overview',
   insights: '/insights',

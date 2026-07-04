@@ -14,7 +14,7 @@ export const BotChat = () => {
   const { messages, draft, setDraft, send, isSending } = useBotChat()
 
   return (
-    <div className="flex h-screen flex-col">
+    <div className="mx-auto flex h-screen w-full max-w-[1180px] flex-col">
       <div className="flex items-center gap-3 border-b border-hairline px-[34px] py-[22px]">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#005ea4" strokeWidth="1.7">
           <rect x="4" y="8" width="16" height="11" rx="3" />

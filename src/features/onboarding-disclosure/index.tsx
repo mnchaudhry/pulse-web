@@ -1,9 +1,11 @@
 'use client'
 
 import Link from 'next/link'
-import { PulseLogo } from '@/components/pulse-logo'
+import { Logo } from '@/components/logo'
 import { routes } from '@/constants/routes'
 import { useOnboardingDisclosure } from './use-onboarding-disclosure'
+
+const CHROME_STORE_URL = process.env.NEXT_PUBLIC_CHROME_STORE_URL ?? '#'
 
 const TRACKS = [
   'The domain and page title of each tab you actively use',
@@ -25,11 +27,34 @@ export const OnboardingDisclosure = () => {
   return (
     <div className="w-full max-w-[520px]">
       <div className="mb-[26px] flex flex-col items-center">
-        <PulseLogo size={44} />
-        <h1 className="mb-1.5 mt-[18px] text-[22px] font-semibold tracking-[-.3px]">Before Pulse starts</h1>
-        <p className="max-w-[400px] text-center text-[13.5px] text-ink-2">
-          Here is exactly what will and won’t be recorded. Nothing is captured until you confirm.
+        <Logo variant="mark" size={44} />
+        <h1 className="mb-1.5 mt-[18px] text-[22px] font-semibold tracking-[-.3px]">Set up Pulse</h1>
+        <p className="max-w-[420px] text-center text-[13.5px] text-ink-2">
+          Add the extension to this Chrome profile, then confirm what it records. Nothing is captured until you do.
         </p>
+      </div>
+
+      {/* Step 1 — install the extension */}
+      <div className="mb-4 flex items-center gap-4 rounded-2xl border border-edge bg-surface p-[18px] shadow-[0_8px_28px_rgba(15,23,42,.07)]">
+        <div className="mono flex h-7 w-7 flex-none items-center justify-center rounded-full bg-tint text-[13px] font-bold text-pulse">1</div>
+        <div className="flex-1">
+          <div className="text-sm font-semibold">Add Pulse to Chrome</div>
+          <div className="mt-0.5 text-[12.5px] text-ink-2">Install it on this profile — each profile is its own device.</div>
+        </div>
+        <a
+          href={CHROME_STORE_URL}
+          target="_blank"
+          rel="noreferrer"
+          className="flex-none rounded-[9px] bg-pulse px-4 py-2.5 text-[13px] font-semibold text-white transition-colors hover:bg-pulse-bright"
+        >
+          Add to Chrome
+        </a>
+      </div>
+
+      {/* Step 2 — disclosure */}
+      <div className="mb-4 flex items-center gap-4 px-[18px]">
+        <div className="mono flex h-7 w-7 flex-none items-center justify-center rounded-full bg-tint text-[13px] font-bold text-pulse">2</div>
+        <div className="text-[12.5px] text-ink-2">Review exactly what is and isn’t recorded:</div>
       </div>
 
       <div className="rounded-2xl border border-edge bg-surface p-1.5 shadow-[0_8px_28px_rgba(15,23,42,.07)]">

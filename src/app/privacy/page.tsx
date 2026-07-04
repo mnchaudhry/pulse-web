@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { PulseLogo } from '@/components/pulse-logo'
+import { Logo } from '@/components/logo'
 
 export const metadata: Metadata = {
   title: 'Privacy policy — Pulse',
@@ -37,9 +37,8 @@ const PrivacyPage = () => {
   return (
     <div className="min-h-screen bg-surface">
       <div className="mx-auto max-w-[720px] px-[34px] pb-20 pt-12">
-        <div className="mb-9 flex items-center gap-[11px]">
-          <PulseLogo size={30} />
-          <span className="text-[17px] font-bold">Pulse</span>
+        <div className="mb-9">
+          <Logo size={30} />
         </div>
         <h1 className="mb-2 text-[30px] font-semibold tracking-[-.5px]">Privacy policy</h1>
         <p className="mono mb-10 text-[13px] text-ink-3">Last updated July 2, 2026 · public, no login required</p>

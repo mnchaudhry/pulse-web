@@ -17,7 +17,7 @@ const SettingsLayout = ({ children }: { children: ReactNode }) => {
   const pathname = usePathname()
 
   return (
-    <PageContainer size="narrow">
+    <PageContainer size="default">
       <h1 className="mb-1 text-2xl font-semibold tracking-[-.4px]">Settings</h1>
       <p className="mb-[22px] text-[13.5px] text-ink-2">Privacy, categories, notifications and your account.</p>
 

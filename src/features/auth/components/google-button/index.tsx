@@ -5,16 +5,18 @@ import { routes } from '@/constants/routes'
 import { createBrowserClient } from '@/lib/supabase/browser-client'
 
 // US-01: Google OAuth. Redirects through /auth/callback, which exchanges the
-// code for a session and forwards to `next` (extension handoff or overview).
-export const GoogleButton = () => {
+// code for a session and forwards to `next`. `onboard` (signup) and the
+// extension handoff both route into the connect-extension onboarding modal.
+export const GoogleButton = ({ onboard = false }: { onboard?: boolean }) => {
   const params = useSearchParams()
 
   const signIn = async () => {
-    const next = params.get('source') === 'extension' ? routes.connectExtension : routes.overview
+    const toOnboarding = onboard || params.get('source') === 'extension'
+    const next = toOnboarding ? routes.connectExtension : routes.overview
     const supabase = createBrowserClient()
     await supabase.auth.signInWithOAuth({
       provider: 'google',
-      options: { redirectTo: `${window.location.origin}/auth/callback?next=${next}` },
+      options: { redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}` },
     })
   }
 

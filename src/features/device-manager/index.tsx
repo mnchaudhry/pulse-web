@@ -1,7 +1,9 @@
 'use client'
 
 import type { DeviceRow as Device } from '@/lib/supabase/database.types'
+import Link from 'next/link'
 import { PageContainer } from '@/components/page-container'
+import { routes } from '@/constants/routes'
 import { DeviceRow } from './components/device-row'
 import { useDeviceManager } from './use-device-manager'
 
@@ -34,8 +36,23 @@ export const DeviceManager = () => {
       )}
 
       {!devicesQuery.isLoading && devices.length === 0 && (
-        <div className="rounded-[14px] border border-dashed border-edge-strong bg-chip p-8 text-center text-[13px] text-ink-2">
-          No devices yet. Install the Pulse extension and log in — this profile will register automatically.
+        <div className="flex flex-col items-center rounded-[14px] border border-dashed border-edge-strong bg-chip px-6 py-12 text-center">
+          <div className="flex h-12 w-12 items-center justify-center rounded-[13px] border border-edge bg-surface">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#5B6B87" strokeWidth="1.6">
+              <rect x="2" y="4" width="20" height="13" rx="2" />
+              <path d="M8 21h8M12 17v4" />
+            </svg>
+          </div>
+          <h2 className="mb-1.5 mt-4 text-[15px] font-semibold">No devices yet</h2>
+          <p className="mb-5 max-w-[360px] text-[13px] leading-[1.5] text-ink-2">
+            Add the Pulse extension to this Chrome profile and it registers here automatically — then your activity starts flowing in.
+          </p>
+          <Link
+            href={routes.connectExtension}
+            className="rounded-[10px] bg-pulse px-5 py-2.5 text-[13px] font-semibold text-white transition-colors hover:bg-pulse-bright"
+          >
+            Set up the extension
+          </Link>
         </div>
       )}
 

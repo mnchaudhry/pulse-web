@@ -1,9 +1,10 @@
 'use client'
 
 import { format } from 'date-fns'
-import { useState } from 'react'
+import { Suspense, useState } from 'react'
 import { DeviceScopeSelector } from '@/components/device-scope-selector'
 import { PageContainer } from '@/components/page-container'
+import { ProductTour } from '@/features/product-tour'
 import type { RangeKey } from '@/utils/date-range'
 import { cn } from '@/utils/cn'
 import { CategoryBreakdownChart } from './components/category-breakdown-chart'
@@ -22,6 +23,9 @@ export const AnalyticsOverview = () => {
 
   return (
     <PageContainer>
+      <Suspense>
+        <ProductTour />
+      </Suspense>
       <div className="mb-[26px] flex flex-wrap items-end justify-between gap-5">
         <div>
           <h1 className="text-2xl font-semibold tracking-[-.4px]">Overview</h1>
@@ -33,7 +37,7 @@ export const AnalyticsOverview = () => {
         </div>
 
         <div className="flex items-center gap-2.5">
-          <div className="flex rounded-[10px] border border-edge bg-surface p-[3px]">
+          <div data-tour="range" className="flex rounded-[10px] border border-edge bg-surface p-[3px]">
             {RANGES.map((r) => {
               const active = r === range
               return (
@@ -51,7 +55,9 @@ export const AnalyticsOverview = () => {
               )
             })}
           </div>
-          <DeviceScopeSelector />
+          <span data-tour="scope">
+            <DeviceScopeSelector />
+          </span>
         </div>
       </div>
 
@@ -69,7 +75,9 @@ export const AnalyticsOverview = () => {
 
       {data && (
         <>
-          <StatCards stats={data.stats} />
+          <div data-tour="stats">
+            <StatCards stats={data.stats} />
+          </div>
 
           <div className="mb-4 grid grid-cols-[1.55fr_1fr] gap-4 max-lg:grid-cols-1">
             <CategoryBreakdownChart categories={data.categories} totalActive={data.totalActive} />

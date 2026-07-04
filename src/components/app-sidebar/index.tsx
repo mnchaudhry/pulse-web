@@ -3,6 +3,7 @@
 import type { ReactNode } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
+import { Logo } from '@/components/logo'
 import { routes } from '@/constants/routes'
 import { useCurrentUser } from '@/hooks/use-current-user'
 import { createBrowserClient } from '@/lib/supabase/browser-client'
@@ -100,16 +101,9 @@ export const AppSidebar = () => {
   }
 
   return (
-    <aside className="sticky top-0 flex h-screen w-[236px] flex-none flex-col gap-1 overflow-y-auto border-r border-hairline bg-surface px-3.5 py-[22px]">
-      <div className="flex items-center gap-[11px] px-2 pb-5 pt-1">
-        <svg width="26" height="26" viewBox="0 0 40 40" fill="none">
-          <rect width="40" height="40" rx="10" fill="#e8f2fb" />
-          <path d="M6 20h6.5l3-8 5 18 4-13 2.5 5H34" stroke="#005ea4" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
-        <div className="flex flex-col leading-none">
-          <span className="text-base font-bold tracking-[-.2px]">Pulse</span>
-          <span className="mt-[3px] text-[10.5px] text-ink-3">Attention, honestly</span>
-        </div>
+    <aside data-tour="sidebar" className="sticky top-0 flex h-screen w-[236px] flex-none flex-col gap-1 overflow-y-auto border-r border-hairline bg-surface px-3.5 py-[22px]">
+      <div className="px-2 pb-5 pt-1">
+        <Logo tagline />
       </div>
 
       {NAV_GROUPS.map(group => (
@@ -123,6 +117,7 @@ export const AppSidebar = () => {
               <Link
                 key={item.label}
                 href={item.href}
+                data-tour={`nav-${item.label.toLowerCase()}`}
                 className={cn(
                   'group relative flex w-full items-center gap-[11px] rounded-[9px] px-2.5 py-[9px] text-[13.5px] transition-colors',
                   active ? 'text-ink' : 'text-ink-2 hover:bg-tint hover:text-ink',

@@ -34,7 +34,8 @@ export const useOnboardingDisclosure = () => {
       )
     }
 
-    router.replace(routes.overview)
+    // Land on the dashboard with the guided tour flagged on.
+    router.replace(`${routes.overview}?tour=1`)
   }
 
   return { confirm, isConnecting }
