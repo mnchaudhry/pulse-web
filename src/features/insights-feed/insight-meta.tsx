@@ -37,3 +37,9 @@ export const KIND_META: Record<string, { tag: string, tint: string, icon: ReactN
 export const DEFAULT_META = { tag: 'Insight', tint: '#005ea4', icon: lightbulb, filter: 'All' }
 
 export const INSIGHT_FILTERS = ['All', 'Anomalies', 'Focus', 'Trends', 'Devices']
+
+// P0.2: the context handed to the bot when a user asks about a specific insight card.
+export const buildAskBotPrompt = (insight: InsightView): string => {
+  const metrics = insight.chips.map(chip => `${chip.k} ${chip.v}`).join(', ')
+  return `Tell me more about this insight: "${insight.title}". Context: ${insight.body}.${metrics ? ` Metrics: ${metrics}.` : ''}`
+}

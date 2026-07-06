@@ -1,9 +1,20 @@
+import type { RangeKey } from '@/utils/date-range'
 import type { FocusBlock } from '../../types'
 
-export const FocusBlocks = ({ blocks }: { blocks: FocusBlock[] }) => {
+const RANGE_LABEL: Record<RangeKey, string> = {
+  Today: 'today',
+  Week: 'this week',
+  Month: 'this month',
+}
+
+export const FocusBlocks = ({ blocks, range }: { blocks: FocusBlock[], range: RangeKey }) => {
   return (
     <div className="rounded-[14px] border border-edge bg-surface p-5 shadow-[0_4px_16px_rgba(15,23,42,.05)]">
-      <h2 className="mb-4 text-sm font-semibold">Longest focus blocks today</h2>
+      <h2 className="mb-4 text-sm font-semibold">
+        Longest focus blocks
+        {' '}
+        {RANGE_LABEL[range]}
+      </h2>
       {blocks.length === 0
         ? (
             <p className="py-6 text-center text-[13px] text-ink-3">No focus blocks yet.</p>

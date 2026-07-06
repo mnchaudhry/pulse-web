@@ -3,8 +3,9 @@
 import type { ReactNode } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { useEffect } from 'react'
 import { PageContainer } from '@/components/page-container'
-import { routes } from '@/constants/routes'
+import { routes, SETTINGS_TAB_STORAGE_KEY } from '@/constants/routes'
 
 const TABS = [
   { label: 'Privacy', href: routes.settingsPrivacy },
@@ -15,6 +16,10 @@ const TABS = [
 
 const SettingsLayout = ({ children }: { children: ReactNode }) => {
   const pathname = usePathname()
+
+  useEffect(() => {
+    localStorage.setItem(SETTINGS_TAB_STORAGE_KEY, pathname)
+  }, [pathname])
 
   return (
     <PageContainer size="default">

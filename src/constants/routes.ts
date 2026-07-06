@@ -14,3 +14,6 @@ export const routes = {
   settingsAccount: '/settings/account',
   bot: '/bot',
 } as const
+
+// P3.6: last settings tab visited, so the sidebar link resumes where the user left off.
+export const SETTINGS_TAB_STORAGE_KEY = 'pulse:settings-tab'

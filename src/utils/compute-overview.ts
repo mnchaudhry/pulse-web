@@ -186,7 +186,6 @@ export function computeOverview(
   const longest = longestBlocks[0]
   const stats: StatCard[] = [
     { label: 'Total active', value: fmt(toMinutes(displaySeconds)), delta: 'active, focused time', tint: '#005ea4' },
-    { label: 'Focus score', value: String(focusScore), delta: `steady · 7-day avg ${focusAverage}`, tint: '#005ea4' },
     { label: 'Longest block', value: longest?.dur ?? '0m', delta: longest ? `${longest.range} · ${longest.label.split(' · ')[0]}` : 'no activity yet', tint: '#0E7C86' },
     { label: 'Top category', value: top?.name ?? '—', delta: top ? `${top.dur} · ${top.pct}% of range` : 'no activity yet', tint: '#0E7C86' },
   ]

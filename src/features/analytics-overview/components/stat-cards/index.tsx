@@ -12,14 +12,13 @@ const icon = (paths: ReactNode) => (
 // Icons keyed by stat label (the data hook supplies values, not icons).
 const ICONS: Record<string, ReactNode> = {
   'Total active': icon(<><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></>),
-  'Focus score': icon(<><path d="M12 3a6 6 0 0 0-4 10.5c.7.7 1 1.2 1 2V17h6v-1.5c0-.8.3-1.3 1-2A6 6 0 0 0 12 3Z" /><path d="M9.5 20h5" /></>),
   'Longest block': icon(<><circle cx="12" cy="12" r="8" /><circle cx="12" cy="12" r="3" /></>),
   'Top category': icon(<><rect x="4" y="8" width="16" height="11" rx="3" /><path d="M12 8V5M9 13h.01M15 13h.01M9.5 16.5h5" /></>),
 }
 
 export const StatCards = ({ stats }: { stats: StatCard[] }) => {
   return (
-    <div className="mb-4 grid grid-cols-4 gap-4 max-lg:grid-cols-2 max-sm:grid-cols-1">
+    <div className="mb-4 grid grid-cols-3 gap-4 max-lg:grid-cols-2 max-sm:grid-cols-1">
       {stats.map(stat => (
         <div key={stat.label} className={CARD}>
           <div className="mb-3.5 flex items-center gap-2 text-xs text-ink-2">

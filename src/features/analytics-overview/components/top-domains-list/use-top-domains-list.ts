@@ -1,7 +1,7 @@
 'use client'
 
 import type { RangeKey } from '@/utils/date-range'
-import type { PageSlice } from '../../types'
+import type { DomainSlice, PageSlice } from '../../types'
 import { useQuery } from '@tanstack/react-query'
 import { useState } from 'react'
 import { getDomainPages } from '@/services/analytics/get-domain-pages'
@@ -12,11 +12,11 @@ import { formatDuration } from '@/utils/format-duration'
 // Must on the dashboard overview (tracking-spec §6.4).
 export const useTopDomainsList = (range: RangeKey) => {
   const deviceId = useDeviceFilterStore(s => s.deviceId)
-  const [openDomain, setOpenDomain] = useState<string | null>(null)
+  const [openDomain, setOpenDomain] = useState<DomainSlice | null>(null)
 
   const pagesQuery = useQuery({
-    queryKey: ['domain-pages', range, deviceId, openDomain],
-    queryFn: () => getDomainPages(range, deviceId, openDomain!),
+    queryKey: ['domain-pages', range, deviceId, openDomain?.name],
+    queryFn: () => getDomainPages(range, deviceId, openDomain!.name),
     enabled: openDomain !== null,
   })
 
@@ -35,5 +35,7 @@ export const useTopDomainsList = (range: RangeKey) => {
     closeDrilldown: () => setOpenDomain(null),
     pages,
     isLoading: pagesQuery.isLoading,
+    isError: pagesQuery.isError,
+    refetch: pagesQuery.refetch,
   }
 }

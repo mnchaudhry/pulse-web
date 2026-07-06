@@ -1,3 +1,4 @@
+import { clearBotChatStorage } from '@/features/bot-chat/bot-chat-storage'
 import { createBrowserClient } from '@/lib/supabase/browser-client'
 
 // US-65: permanent deletion. Deleting the auth user requires elevated access, so
@@ -9,4 +10,5 @@ export const deleteAccount = async () => {
   if (error)
     throw error
   await supabase.auth.signOut()
+  clearBotChatStorage()
 }

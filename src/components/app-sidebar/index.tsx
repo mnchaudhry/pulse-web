@@ -2,12 +2,13 @@
 
 import type { ReactNode } from 'react'
 import Link from 'next/link'
-import { usePathname, useRouter } from 'next/navigation'
+import { usePathname } from 'next/navigation'
+import { useEffect, useState } from 'react'
 import { Logo } from '@/components/logo'
-import { routes } from '@/constants/routes'
+import { routes, SETTINGS_TAB_STORAGE_KEY } from '@/constants/routes'
 import { ConnectReminderPill } from '@/features/onboarding-disclosure/components/connect-reminder-pill'
 import { useCurrentUser } from '@/hooks/use-current-user'
-import { createBrowserClient } from '@/lib/supabase/browser-client'
+import { useSidebarDrawerStore } from '@/stores/sidebar-drawer-store'
 import { cn } from '@/utils/cn'
 
 interface NavItem {
@@ -86,84 +87,96 @@ const NAV_GROUPS: NavGroup[] = [
 
 export const AppSidebar = () => {
   const pathname = usePathname()
-  const router = useRouter()
   const { user } = useCurrentUser()
+  const drawerOpen = useSidebarDrawerStore(s => s.open)
+  const closeDrawer = useSidebarDrawerStore(s => s.close)
+
+  // P3.6: the Settings nav link resumes the last tab visited (localStorage
+  // is unavailable during SSR, so this only settles in after mount).
+  const [settingsHref, setSettingsHref] = useState<string>(routes.settingsPrivacy)
+  useEffect(() => {
+    const stored = localStorage.getItem(SETTINGS_TAB_STORAGE_KEY)
+    if (stored)
+      setSettingsHref(stored)
+  }, [])
 
   const email = user?.email ?? ''
   const displayName = (user?.user_metadata?.full_name as string | undefined)
     ?? (email ? email.split('@')[0] : 'Account')
   const initial = (displayName || 'A').charAt(0).toUpperCase()
 
-  const signOut = async () => {
-    const supabase = createBrowserClient()
-    await supabase.auth.signOut()
-    router.replace(routes.login)
-    router.refresh()
-  }
-
   return (
-    <aside data-tour="sidebar" className="sticky top-0 flex h-screen w-[236px] flex-none flex-col gap-1 overflow-y-auto border-r border-hairline bg-surface px-3.5 py-[22px]">
-      <div className="px-2 pb-5 pt-1">
-        <Logo tagline />
-      </div>
+    <>
+      {drawerOpen && (
+        <div
+          onClick={closeDrawer}
+          className="fixed inset-0 z-30 bg-[rgb(15_23_42/0.45)] lg:hidden"
+        />
+      )}
 
-      {NAV_GROUPS.map(group => (
-        <div key={group.label}>
-          <div className="px-2 pb-1.5 pt-3.5 text-[10px] font-semibold uppercase tracking-[.12em] text-ink-3">
-            {group.label}
+      <aside
+        data-tour="sidebar"
+        className={cn(
+          'z-40 flex h-screen w-[236px] flex-none flex-col gap-1 overflow-y-auto border-r border-hairline bg-surface px-3.5 py-[22px] transition-transform duration-200',
+          'max-lg:fixed max-lg:inset-y-0 max-lg:left-0',
+          'lg:sticky lg:top-0 lg:translate-x-0',
+          drawerOpen ? 'translate-x-0' : 'max-lg:-translate-x-full',
+        )}
+      >
+        <div className="px-2 pb-5 pt-1">
+          <Logo tagline />
+        </div>
+
+        {NAV_GROUPS.map(group => (
+          <div key={group.label}>
+            <div className="px-2 pb-1.5 pt-3.5 text-[10px] font-semibold uppercase tracking-[.12em] text-ink-3">
+              {group.label}
+            </div>
+            {group.items.map((item) => {
+              const active = item.match(pathname)
+              const href = item.label === 'Settings' ? settingsHref : item.href
+              return (
+                <Link
+                  key={item.label}
+                  href={href}
+                  data-tour={`nav-${item.label.toLowerCase()}`}
+                  onClick={closeDrawer}
+                  className={cn(
+                    'group relative flex w-full items-center gap-[11px] rounded-[9px] px-2.5 py-[9px] text-[13.5px] transition-colors',
+                    active ? 'text-ink' : 'text-ink-2 hover:bg-tint hover:text-ink',
+                  )}
+                >
+                  {active && (
+                    <>
+                      <span className="absolute inset-0 rounded-[9px] bg-tint" />
+                      <span className="absolute bottom-[7px] left-0 top-[7px] w-[3px] rounded-[3px] bg-pulse" />
+                    </>
+                  )}
+                  <span className="relative flex h-4 w-4 flex-none items-center justify-center">{item.icon}</span>
+                  <span className="relative flex-1 text-left">{item.label}</span>
+                  {active && (
+                    <span className="relative h-[5px] w-[5px] rounded-full bg-pulse shadow-[0_0_8px_#005ea4]" />
+                  )}
+                </Link>
+              )
+            })}
           </div>
-          {group.items.map((item) => {
-            const active = item.match(pathname)
-            return (
-              <Link
-                key={item.label}
-                href={item.href}
-                data-tour={`nav-${item.label.toLowerCase()}`}
-                className={cn(
-                  'group relative flex w-full items-center gap-[11px] rounded-[9px] px-2.5 py-[9px] text-[13.5px] transition-colors',
-                  active ? 'text-ink' : 'text-ink-2 hover:bg-tint hover:text-ink',
-                )}
-              >
-                {active && (
-                  <>
-                    <span className="absolute inset-0 rounded-[9px] bg-tint" />
-                    <span className="absolute bottom-[7px] left-0 top-[7px] w-[3px] rounded-[3px] bg-pulse" />
-                  </>
-                )}
-                <span className="relative flex h-4 w-4 flex-none items-center justify-center">{item.icon}</span>
-                <span className="relative flex-1 text-left">{item.label}</span>
-                {active && (
-                  <span className="relative h-[5px] w-[5px] rounded-full bg-pulse shadow-[0_0_8px_#005ea4]" />
-                )}
-              </Link>
-            )
-          })}
-        </div>
-      ))}
+        ))}
 
-      <div className="mt-auto px-0.5">
-        <ConnectReminderPill />
-      </div>
+        <div className="mt-auto px-0.5">
+          <ConnectReminderPill />
+        </div>
 
-      <div className="flex items-center gap-2.5 border-t border-hairline px-2 pb-0.5 pt-3.5">
-        <div className="flex h-[30px] w-[30px] items-center justify-center rounded-full bg-[linear-gradient(135deg,#d5e3fc,#b9c7df)] text-xs font-semibold text-[#5B6B87]">
-          {initial}
+        <div className="flex items-center gap-2.5 border-t border-hairline px-2 pb-0.5 pt-3.5">
+          <div className="flex h-[30px] w-[30px] items-center justify-center rounded-full bg-[linear-gradient(135deg,#d5e3fc,#b9c7df)] text-xs font-semibold text-[#5B6B87]">
+            {initial}
+          </div>
+          <div className="min-w-0 leading-[1.3]">
+            <div className="truncate text-[12.5px] font-medium">{displayName}</div>
+            <div className="truncate text-[10.5px] text-ink-3">{email || 'Not signed in'}</div>
+          </div>
         </div>
-        <div className="min-w-0 leading-[1.3]">
-          <div className="truncate text-[12.5px] font-medium">{displayName}</div>
-          <div className="truncate text-[10.5px] text-ink-3">{email || 'Not signed in'}</div>
-        </div>
-        <button
-          type="button"
-          onClick={signOut}
-          title="Sign out"
-          className="ml-auto flex h-7 w-7 flex-none items-center justify-center rounded-lg text-ink-3 transition-colors hover:bg-tint hover:text-ink"
-        >
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7">
-            <path d="M15 3h4a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1h-4M10 17l5-5-5-5M15 12H3" />
-          </svg>
-        </button>
-      </div>
-    </aside>
+      </aside>
+    </>
   )
 }

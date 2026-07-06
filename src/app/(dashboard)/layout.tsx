@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 import { Suspense } from 'react'
 import { AppSidebar } from '@/components/app-sidebar'
+import { AppTopBar } from '@/components/app-top-bar'
 import { Providers } from '@/app/providers'
 import { OnboardingFlowProvider } from '@/features/onboarding-disclosure/onboarding-flow-provider'
 import { OnboardingModal } from '@/features/onboarding-disclosure/onboarding-modal'
@@ -11,7 +12,12 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
       <OnboardingFlowProvider>
         <div className="flex min-h-screen w-full bg-surface">
           <AppSidebar />
-          <main className="flex min-w-0 flex-1 flex-col">{children}</main>
+          <div className="flex min-w-0 flex-1 flex-col">
+            <Suspense>
+              <AppTopBar />
+            </Suspense>
+            <main className="flex min-w-0 flex-1 flex-col">{children}</main>
+          </div>
         </div>
         <Suspense>
           <OnboardingModal />

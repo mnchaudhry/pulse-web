@@ -2,15 +2,21 @@
 
 import type { RangeKey } from '@/utils/date-range'
 import type { DomainSlice } from '../../types'
+import Link from 'next/link'
 import { DomainDrilldown } from './components/domain-drilldown'
 import { useTopDomainsList } from './use-top-domains-list'
 
 export const TopDomainsList = ({ domains, range }: { domains: DomainSlice[], range: RangeKey }) => {
-  const { openDomain, openDrilldown, closeDrilldown, pages, isLoading } = useTopDomainsList(range)
+  const { openDomain, openDrilldown, closeDrilldown, pages, isLoading, isError, refetch } = useTopDomainsList(range)
 
   return (
     <div className="mt-4 rounded-[14px] border border-edge bg-surface p-5 shadow-[0_4px_16px_rgba(15,23,42,.05)]">
-      <h2 className="mb-[18px] text-sm font-semibold">Top domains</h2>
+      <div className="mb-[18px] flex items-center justify-between">
+        <h2 className="text-sm font-semibold">Top domains</h2>
+        <Link href="/settings/categories" className="text-[11.5px] font-medium text-pulse hover:underline">
+          Miscategorized? Change category
+        </Link>
+      </div>
       {domains.length === 0
         ? (
             <p className="py-6 text-center text-[13px] text-ink-3">No domains tracked in this range yet.</p>
@@ -21,7 +27,7 @@ export const TopDomainsList = ({ domains, range }: { domains: DomainSlice[], ran
                 <button
                   key={domain.name}
                   type="button"
-                  onClick={() => openDrilldown(domain.name)}
+                  onClick={() => openDrilldown(domain)}
                   className="flex items-center gap-3.5 rounded-md text-left transition-colors hover:bg-chip"
                 >
                   <span className="w-[180px] flex-none overflow-hidden text-ellipsis whitespace-nowrap text-[13px]">
@@ -42,6 +48,8 @@ export const TopDomainsList = ({ domains, range }: { domains: DomainSlice[], ran
           domain={openDomain}
           pages={pages}
           isLoading={isLoading}
+          isError={isError}
+          onRetry={refetch}
           onClose={closeDrilldown}
         />
       )}

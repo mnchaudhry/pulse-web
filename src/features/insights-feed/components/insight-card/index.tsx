@@ -1,6 +1,11 @@
 import type { InsightView } from '../../insight-meta'
 
-export const InsightCard = ({ insight }: { insight: InsightView }) => {
+interface Props {
+  insight: InsightView
+  onAskBot: (insight: InsightView) => void
+}
+
+export const InsightCard = ({ insight, onAskBot }: Props) => {
   return (
     <div className="flex overflow-hidden rounded-[14px] border border-edge bg-surface shadow-[0_4px_16px_rgba(15,23,42,.05)] transition-colors hover:border-pulse-soft">
       <div className="w-[3px] flex-none" style={{ background: insight.tint }} />
@@ -31,6 +36,7 @@ export const InsightCard = ({ insight }: { insight: InsightView }) => {
           ))}
           <button
             type="button"
+            onClick={() => onAskBot(insight)}
             className="ml-auto flex items-center gap-1.5 text-[12.5px] text-pulse transition-colors hover:text-pulse-bright"
           >
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">

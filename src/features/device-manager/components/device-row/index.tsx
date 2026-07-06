@@ -1,21 +1,36 @@
 import type { DeviceRow as Device } from '@/lib/supabase/database.types'
 import { formatDistanceToNow } from 'date-fns'
+import { useState } from 'react'
 
 interface Props {
   device: Device
-  onRename: (device: Device) => void
-  onRemove: (device: Device) => void
+  onRename: (device: Device, label: string) => void
+  onRequestRemove: (device: Device) => void
 }
 
 // Online if it synced within the last 5 minutes.
 const isOnline = (lastSyncedAt: string | null) =>
   !!lastSyncedAt && Date.now() - new Date(lastSyncedAt).getTime() < 5 * 60_000
 
-export const DeviceRow = ({ device, onRename, onRemove }: Props) => {
+export const DeviceRow = ({ device, onRename, onRequestRemove }: Props) => {
+  const [editing, setEditing] = useState(false)
+  const [draftLabel, setDraftLabel] = useState(device.label)
   const online = isOnline(device.last_synced_at)
   const synced = device.last_synced_at
     ? `synced ${formatDistanceToNow(new Date(device.last_synced_at), { addSuffix: true })}`
     : 'never synced'
+
+  const startEditing = () => {
+    setDraftLabel(device.label)
+    setEditing(true)
+  }
+
+  const save = () => {
+    const trimmed = draftLabel.trim()
+    if (trimmed && trimmed !== device.label)
+      onRename(device, trimmed)
+    setEditing(false)
+  }
 
   return (
     <div className="flex items-center gap-4 rounded-[14px] border border-edge bg-surface px-5 py-[18px] shadow-[0_4px_16px_rgba(15,23,42,.05)] transition-colors hover:border-pulse-soft">
@@ -27,14 +42,47 @@ export const DeviceRow = ({ device, onRename, onRemove }: Props) => {
       </div>
 
       <div className="min-w-0 flex-1">
-        <div className="flex items-center gap-[9px]">
-          <span className="text-[15px] font-semibold">{device.label}</span>
-          {device.is_paused && (
-            <span className="rounded-[5px] border border-[rgba(178,106,0,.2)] bg-[rgba(178,106,0,.08)] px-[7px] py-0.5 text-[10px] font-semibold uppercase tracking-[.06em] text-warn">
-              Paused
-            </span>
-          )}
-        </div>
+        {editing
+          ? (
+              <div className="flex items-center gap-2">
+                <input
+                  autoFocus
+                  value={draftLabel}
+                  onChange={e => setDraftLabel(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter')
+                      save()
+                    if (e.key === 'Escape')
+                      setEditing(false)
+                  }}
+                  className="rounded-[8px] border border-edge bg-chip px-2.5 py-1 text-[14px] font-semibold outline-none focus:border-pulse"
+                />
+                <button
+                  type="button"
+                  onClick={save}
+                  className="rounded-[7px] bg-pulse px-2.5 py-1 text-[12px] font-semibold text-white transition-colors hover:bg-pulse-bright"
+                >
+                  Save
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setEditing(false)}
+                  className="rounded-[7px] border border-edge px-2.5 py-1 text-[12px] text-ink-2 transition-colors hover:text-ink"
+                >
+                  Cancel
+                </button>
+              </div>
+            )
+          : (
+              <div className="flex items-center gap-[9px]">
+                <span className="text-[15px] font-semibold">{device.label}</span>
+                {device.is_paused && (
+                  <span className="rounded-[5px] border border-[rgba(178,106,0,.2)] bg-[rgba(178,106,0,.08)] px-[7px] py-0.5 text-[10px] font-semibold uppercase tracking-[.06em] text-warn">
+                    Paused
+                  </span>
+                )}
+              </div>
+            )}
         <div className="mono mt-[5px] flex gap-3 text-xs text-ink-3">
           <span>{device.platform ?? 'Unknown platform'}</span>
           <span>·</span>
@@ -51,7 +99,7 @@ export const DeviceRow = ({ device, onRename, onRemove }: Props) => {
         <button
           type="button"
           title="Rename"
-          onClick={() => onRename(device)}
+          onClick={startEditing}
           className="flex h-[34px] w-[34px] items-center justify-center rounded-[9px] border border-edge text-ink-2 transition-colors hover:border-pulse-soft hover:text-ink"
         >
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7">
@@ -61,7 +109,7 @@ export const DeviceRow = ({ device, onRename, onRemove }: Props) => {
         <button
           type="button"
           title="Remove"
-          onClick={() => onRemove(device)}
+          onClick={() => onRequestRemove(device)}
           className="flex h-[34px] w-[34px] items-center justify-center rounded-[9px] border border-edge text-ink-2 transition-colors hover:border-danger-edge hover:text-danger"
         >
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7">
