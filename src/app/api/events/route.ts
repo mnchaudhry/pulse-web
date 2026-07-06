@@ -2,11 +2,8 @@ import { NextResponse } from 'next/server'
 import { categoryMap } from '@/constants/category-map'
 import { createTokenClient } from '@/lib/supabase/server-client'
 import { ingestPayloadSchema } from '@/schemas/event.schema'
-import { isPlausibleEvent } from '@/services/ingest/validate-event-timestamps'
+import { isPlausibleEvent, sanitizeActiveSeconds } from '@/services/ingest/validate-event-timestamps'
 
-// The extension calls this cross-origin (chrome-extension://…), so every
-// response needs CORS headers and a preflight (OPTIONS) handler. Auth is a
-// Bearer token (not cookies), so reflecting the origin is safe.
 const corsHeaders = (origin: string | null): Record<string, string> => ({
   'Access-Control-Allow-Origin': origin ?? '*',
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
@@ -15,12 +12,23 @@ const corsHeaders = (origin: string | null): Record<string, string> => ({
   'Vary': 'Origin',
 })
 
+// New Tab and chrome://* internals group under Browser (US-69, decisions #9/#10)
+// unless the user has explicitly overridden that domain's category (US-34).
+const isBrowserDestination = (domain: string): boolean =>
+  domain === 'New Tab' || domain.startsWith('chrome://') || domain.startsWith('edge://')
+
+const resolveCategory = (domain: string, overrides: Map<string, string>): string => {
+  const override = overrides.get(domain)
+  if (override)
+    return override
+  if (isBrowserDestination(domain))
+    return 'Browser'
+  return categoryMap[domain] ?? categoryMap[domain.split(':')[0]] ?? 'Uncategorized'
+}
+
 export const OPTIONS = (request: Request) =>
   new NextResponse(null, { status: 204, headers: corsHeaders(request.headers.get('origin')) })
 
-// US-19/63: extension ingest. Authenticates the caller's token, validates the
-// batch (Zod + timestamp plausibility), lazily registers the device (US-07/08),
-// resolves categories (overrides win), and inserts as the user (RLS-scoped).
 export const POST = async (request: Request) => {
   const cors = corsHeaders(request.headers.get('origin'))
   const json = (body: unknown, status = 200) => NextResponse.json(body, { status, headers: cors })
@@ -41,7 +49,6 @@ export const POST = async (request: Request) => {
 
   const { clientId, platform, label, events } = parsed.data
 
-  // Resolve or register the device (idempotent on client_id).
   const { data: existing } = await supabase
     .from('devices')
     .select('id')
@@ -66,7 +73,6 @@ export const POST = async (request: Request) => {
       .eq('id', deviceId)
   }
 
-  // Category resolution: account-level overrides beat the built-in map (US-34).
   const { data: overrides } = await supabase
     .from('category_overrides')
     .select('domain, category')
@@ -83,10 +89,10 @@ export const POST = async (request: Request) => {
       domain: e.domain,
       title: e.title,
       referrer_domain: e.referrerDomain,
-      category: overrideMap.get(e.domain) ?? categoryMap[e.domain] ?? 'Uncategorized',
+      category: resolveCategory(e.domain, overrideMap),
       started_at: e.startedAt,
       ended_at: e.endedAt,
-      active_seconds: e.activeSeconds,
+      active_seconds: sanitizeActiveSeconds(e),
     }))
 
   if (rows.length) {

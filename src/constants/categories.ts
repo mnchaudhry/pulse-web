@@ -8,6 +8,7 @@ export const CATEGORY_COLORS = {
   Entertainment: '#BA1A1A',
   Reference: '#5B6B87',
   Shopping: '#4E8A5B',
+  Browser: '#64748B',
   Uncategorized: '#98A2B3',
 } as const
 

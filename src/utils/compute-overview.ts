@@ -9,6 +9,7 @@ import type {
 } from '@/features/analytics-overview/types'
 import { addDays, format, isSameDay } from 'date-fns'
 import { CATEGORY_COLORS } from '@/constants/categories'
+import { dayKeyInZone, dayLengthSeconds, startOfDayInZone } from '@/utils/day-length'
 import { formatDurationFromMinutes as fmt } from '@/utils/format-duration'
 
 const colorFor = (category: string) =>
@@ -19,8 +20,12 @@ const hhmm = (iso: string) => format(new Date(iso), 'H:mm')
 
 // US-44: wall-clock active time with overlaps merged, so two devices active at
 // once don't double-count. Approximates each event's active window as
-// [started, started + active_seconds].
-const mergedActiveSeconds = (rows: RawEventRow[]): number => {
+// [started, started + active_seconds]. After merging, each interval is split
+// across home-TZ calendar days and each day's total is capped at that day's
+// wall-clock length (86,400s normally, 90,000s/82,800s on DST transition
+// days) — a combined view can never exceed real elapsed time in a day
+// (spec §11.3, §11.5 #2, decision #23).
+const mergedActiveSeconds = (rows: RawEventRow[], timeZone: string): number => {
   const intervals = rows
     .map((r) => {
       const start = new Date(r.started_at).getTime()
@@ -28,13 +33,13 @@ const mergedActiveSeconds = (rows: RawEventRow[]): number => {
     })
     .sort((a, b) => a[0] - b[0])
 
-  let total = 0
+  const merged: [number, number][] = []
   let curStart = -1
   let curEnd = -1
   for (const [start, end] of intervals) {
     if (start > curEnd) {
       if (curEnd >= 0)
-        total += curEnd - curStart
+        merged.push([curStart, curEnd])
       curStart = start
       curEnd = end
     }
@@ -43,8 +48,29 @@ const mergedActiveSeconds = (rows: RawEventRow[]): number => {
     }
   }
   if (curEnd >= 0)
-    total += curEnd - curStart
-  return Math.round(total / 1000)
+    merged.push([curStart, curEnd])
+
+  const perDay = new Map<string, { seconds: number, cap: number }>()
+  for (const [start, end] of merged) {
+    let cursor = start
+    while (cursor < end) {
+      const cursorDate = new Date(cursor)
+      const cap = dayLengthSeconds(cursorDate, timeZone)
+      const dayEnd = startOfDayInZone(cursorDate, timeZone).getTime() + cap * 1000
+      const sliceEnd = Math.min(end, dayEnd)
+      const key = dayKeyInZone(cursorDate, timeZone)
+      const seconds = Math.round((sliceEnd - cursor) / 1000)
+      const existing = perDay.get(key) ?? { seconds: 0, cap }
+      existing.seconds += seconds
+      perDay.set(key, existing)
+      cursor = sliceEnd
+    }
+  }
+
+  let total = 0
+  for (const { seconds, cap } of perDay.values())
+    total += Math.min(seconds, cap)
+  return total
 }
 
 const WORK_CATEGORIES = new Set(['Dev', 'Work'])
@@ -71,6 +97,7 @@ export function computeOverview(
   rangeFrom: Date,
   now: Date = new Date(),
   combined = false,
+  homeTimezone = 'UTC',
 ): OverviewData {
   const inRange = rows.filter(r => new Date(r.started_at) >= rangeFrom)
 
@@ -81,7 +108,7 @@ export function computeOverview(
 
   const totalSeconds = [...catSeconds.values()].reduce((a, b) => a + b, 0)
   // Combined views merge overlapping windows; single-device sums directly.
-  const displaySeconds = combined ? mergedActiveSeconds(inRange) : totalSeconds
+  const displaySeconds = combined ? mergedActiveSeconds(inRange, homeTimezone) : totalSeconds
   const categories: CategorySlice[] = [...catSeconds.entries()]
     .sort((a, b) => b[1] - a[1])
     .map(([name, sec]) => ({
