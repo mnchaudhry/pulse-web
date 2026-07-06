@@ -2,8 +2,10 @@
 
 import { format } from 'date-fns'
 import { Suspense, useState } from 'react'
+import { Toast } from '@/components/toast'
 import { DeviceScopeSelector } from '@/components/device-scope-selector'
 import { PageContainer } from '@/components/page-container'
+import { DeviceConnectedToast } from '@/features/onboarding-disclosure/components/device-connected-toast'
 import { ProductTour } from '@/features/product-tour'
 import type { RangeKey } from '@/utils/date-range'
 import { cn } from '@/utils/cn'
@@ -14,18 +16,24 @@ import { StatCards } from './components/stat-cards'
 import { TopDomainsList } from './components/top-domains-list'
 import { TrendChart } from './components/trend-chart'
 import { useAnalyticsOverview } from './use-analytics-overview'
+import { useFirstDataToast } from './use-first-data-toast'
 
 const RANGES: RangeKey[] = ['Today', 'Week', 'Month']
 
 export const AnalyticsOverview = () => {
   const [range, setRange] = useState<RangeKey>('Today')
   const { data, isLoading, isError } = useAnalyticsOverview(range)
+  const firstDataToast = useFirstDataToast(data?.hasData ?? false)
 
   return (
     <PageContainer>
       <Suspense>
         <ProductTour />
+        <DeviceConnectedToast />
       </Suspense>
+      {firstDataToast.show && (
+        <Toast message="Your first activity just came in." onDismiss={firstDataToast.dismiss} />
+      )}
       <div className="mb-[26px] flex flex-wrap items-end justify-between gap-5">
         <div>
           <h1 className="text-2xl font-semibold tracking-[-.4px]">Overview</h1>
@@ -89,7 +97,7 @@ export const AnalyticsOverview = () => {
             <FocusBlocks blocks={data.longestBlocks} />
           </div>
 
-          <TopDomainsList domains={data.topDomains} />
+          <TopDomainsList domains={data.topDomains} range={range} />
         </>
       )}
     </PageContainer>

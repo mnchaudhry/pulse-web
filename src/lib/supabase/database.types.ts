@@ -15,6 +15,9 @@ export interface Database {
           notif_chrome: boolean
           notif_email_daily: boolean
           notif_email_weekly: boolean
+          disclosure_confirmed_at: string | null
+          tour_completed_at: string | null
+          first_data_seen_at: string | null
           created_at: string
         }
         Insert: {
@@ -24,6 +27,9 @@ export interface Database {
           notif_chrome?: boolean
           notif_email_daily?: boolean
           notif_email_weekly?: boolean
+          disclosure_confirmed_at?: string | null
+          tour_completed_at?: string | null
+          first_data_seen_at?: string | null
           created_at?: string
         }
         Update: Partial<Database['public']['Tables']['users']['Insert']>
@@ -37,6 +43,7 @@ export interface Database {
           label: string
           platform: string | null
           is_paused: boolean
+          renamed: boolean
           last_synced_at: string | null
           created_at: string
         }
@@ -47,6 +54,7 @@ export interface Database {
           label: string
           platform?: string | null
           is_paused?: boolean
+          renamed?: boolean
           last_synced_at?: string | null
           created_at?: string
         }

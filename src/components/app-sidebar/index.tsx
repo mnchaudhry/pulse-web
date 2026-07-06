@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { Logo } from '@/components/logo'
 import { routes } from '@/constants/routes'
+import { ConnectReminderPill } from '@/features/onboarding-disclosure/components/connect-reminder-pill'
 import { useCurrentUser } from '@/hooks/use-current-user'
 import { createBrowserClient } from '@/lib/supabase/browser-client'
 import { cn } from '@/utils/cn'
@@ -140,7 +141,11 @@ export const AppSidebar = () => {
         </div>
       ))}
 
-      <div className="mt-auto flex items-center gap-2.5 border-t border-hairline px-2 pb-0.5 pt-3.5">
+      <div className="mt-auto px-0.5">
+        <ConnectReminderPill />
+      </div>
+
+      <div className="flex items-center gap-2.5 border-t border-hairline px-2 pb-0.5 pt-3.5">
         <div className="flex h-[30px] w-[30px] items-center justify-center rounded-full bg-[linear-gradient(135deg,#d5e3fc,#b9c7df)] text-xs font-semibold text-[#5B6B87]">
           {initial}
         </div>

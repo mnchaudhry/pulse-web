@@ -12,15 +12,19 @@ const SECTIONS = [
   },
   {
     heading: 'What is collected',
-    body: 'For each tab you actively use, Pulse records the domain, page title, referrer domain, start and end timestamps, and the number of seconds the tab was genuinely focused. Each record is tagged with the device/profile it came from.',
+    body: 'For each tab you actively use in the foreground of a focused Chrome window, Pulse records the domain, page title, referrer domain, start and end timestamps, and the number of seconds the tab was genuinely focused — including New Tab and browser pages like Settings and Extensions (chrome://…), not just third-party websites. Time is never inferred from mouse/keyboard idle: a static cursor on a long video still counts while that tab stays focused. Each record is tagged with the device/profile it came from.',
   },
   {
     heading: 'What is never collected',
-    body: 'Pulse never captures page content, the text of articles, form inputs, or screenshots. It requests no host permissions and injects no code into the pages you visit — all timing comes from browser tab, window, and idle events alone.',
+    body: 'Pulse never captures page content, the text of articles, form inputs, or screenshots. It requests no host permissions and injects no code into the pages you visit — all timing comes from browser tab, window, and idle events alone. Background tabs are never counted, even if playing audio.',
   },
   {
     heading: 'Exclude-list, pause and Incognito',
-    body: 'You can exclude any domain; excluded activity is dropped on-device before it is ever buffered or synced. A one-click pause stops all capture instantly. Incognito windows are excluded by default and require no configuration.',
+    body: 'You can exclude any domain; excluded activity is dropped on-device before it is ever buffered or synced. Excluding a domain also excludes all of its subdomains — excluding chase.com also excludes secure.chase.com. A one-click pause stops all capture instantly. Incognito windows are excluded by default and require no configuration.',
+  },
+  {
+    heading: 'Personal use only',
+    body: 'A Pulse account is for one person. Don’t share login credentials across people — Combined analytics, insights, and the bot all assume a single individual using the account, and results will be misleading if more than one person browses under the same account at once.',
   },
   {
     heading: 'Where your data lives',
@@ -41,7 +45,7 @@ const PrivacyPage = () => {
           <Logo size={30} />
         </div>
         <h1 className="mb-2 text-[30px] font-semibold tracking-[-.5px]">Privacy policy</h1>
-        <p className="mono mb-10 text-[13px] text-ink-3">Last updated July 2, 2026 · public, no login required</p>
+        <p className="mono mb-10 text-[13px] text-ink-3">Last updated July 6, 2026 · public, no login required</p>
         {SECTIONS.map(section => (
           <div key={section.heading} className="mb-8">
             <h2 className="mb-2.5 text-base font-semibold text-ink">{section.heading}</h2>

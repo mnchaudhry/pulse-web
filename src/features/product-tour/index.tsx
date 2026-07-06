@@ -1,10 +1,11 @@
 'use client'
 
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useSearchParams } from 'next/navigation'
 import { useEffect, useRef } from 'react'
+import { completeTour } from '@/services/account/complete-tour'
+import { getProfile } from '@/services/account/get-profile'
 import 'driver.js/dist/driver.css'
-
-const TOUR_KEY = 'pulse:toured'
 
 const STEPS = [
   {
@@ -34,10 +35,16 @@ const STEPS = [
   },
 ]
 
-// Guided first-run tour (driver.js). Triggers on ?tour=1 (set after onboarding)
-// or the first dashboard visit — but never while the onboarding modal is open.
+// Guided first-run tour (driver.js). Triggers on ?tour=1 (set after
+// onboarding) or the first dashboard visit for this account — but never
+// while the onboarding modal is open. Completion is account-scoped
+// (`users.tour_completed_at`), not per-device localStorage, so a second
+// device never re-runs it for an account that's already toured
+// (onboarding-flow.md §6).
 export const ProductTour = () => {
   const params = useSearchParams()
+  const queryClient = useQueryClient()
+  const profileQuery = useQuery({ queryKey: ['profile'], queryFn: getProfile })
   const started = useRef(false)
 
   useEffect(() => {
@@ -46,8 +53,10 @@ export const ProductTour = () => {
     // Don't run behind the onboarding modal.
     if (params.get('connect') === '1')
       return
+    if (!profileQuery.data)
+      return
     const force = params.get('tour') === '1'
-    if (!force && localStorage.getItem(TOUR_KEY))
+    if (!force && profileQuery.data.tour_completed_at)
       return
 
     started.current = true
@@ -65,7 +74,7 @@ export const ProductTour = () => {
         return
       }
 
-      localStorage.setItem(TOUR_KEY, '1')
+      void completeTour().then(() => queryClient.invalidateQueries({ queryKey: ['profile'] }))
       driver({
         showProgress: true,
         popoverClass: 'pulse-tour',
@@ -80,7 +89,7 @@ export const ProductTour = () => {
       cancelled = true
       clearTimeout(timer)
     }
-  }, [params])
+  }, [params, profileQuery.data, queryClient])
 
   return null
 }
