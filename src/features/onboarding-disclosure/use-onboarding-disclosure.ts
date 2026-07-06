@@ -1,21 +1,18 @@
 'use client'
 
-import { useRouter } from 'next/navigation'
 import { useState } from 'react'
-import { routes } from '@/constants/routes'
 import { createBrowserClient } from '@/lib/supabase/browser-client'
 
 interface ChromeRuntime {
-  sendMessage: (id: string, message: unknown, callback?: (response: unknown) => void) => void
+  sendMessage: (id: string, message: unknown, callback: (response: unknown) => void) => void
 }
 
-// US-67/US-02: on explicit confirm, hand the session to the extension via
-// externally_connectable (AUTH_SUCCESS), then continue to the dashboard.
+// US-67/US-02: hand the current session to the extension via
+// externally_connectable (AUTH_SUCCESS). Resolves true once the extension acks.
 export const useOnboardingDisclosure = () => {
-  const router = useRouter()
   const [isConnecting, setIsConnecting] = useState(false)
 
-  const confirm = async () => {
+  const connect = async (): Promise<boolean> => {
     setIsConnecting(true)
     const supabase = createBrowserClient()
     const { data: { session } } = await supabase.auth.getSession()
@@ -23,20 +20,30 @@ export const useOnboardingDisclosure = () => {
     const extensionId = process.env.NEXT_PUBLIC_EXTENSION_ID
     const runtime = (globalThis as { chrome?: { runtime?: ChromeRuntime } }).chrome?.runtime
 
-    if (session && extensionId && runtime?.sendMessage) {
+    if (!session || !extensionId || !runtime?.sendMessage) {
+      setIsConnecting(false)
+      return false
+    }
+
+    return new Promise<boolean>((resolve) => {
+      const done = (ok: boolean) => {
+        setIsConnecting(false)
+        resolve(ok)
+      }
+      const timeout = setTimeout(() => done(false), 2500)
       runtime.sendMessage(
         extensionId,
         {
           type: 'AUTH_SUCCESS',
           session: { access_token: session.access_token, refresh_token: session.refresh_token },
         },
-        () => {},
+        (response: unknown) => {
+          clearTimeout(timeout)
+          done(!!(response as { ok?: boolean } | undefined)?.ok)
+        },
       )
-    }
-
-    // Land on the dashboard with the guided tour flagged on.
-    router.replace(`${routes.overview}?tour=1`)
+    })
   }
 
-  return { confirm, isConnecting }
+  return { connect, isConnecting }
 }
