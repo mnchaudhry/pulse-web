@@ -4,23 +4,40 @@ import { createTokenClient } from '@/lib/supabase/server-client'
 import { ingestPayloadSchema } from '@/schemas/event.schema'
 import { isPlausibleEvent } from '@/services/ingest/validate-event-timestamps'
 
+// The extension calls this cross-origin (chrome-extension://…), so every
+// response needs CORS headers and a preflight (OPTIONS) handler. Auth is a
+// Bearer token (not cookies), so reflecting the origin is safe.
+const corsHeaders = (origin: string | null): Record<string, string> => ({
+  'Access-Control-Allow-Origin': origin ?? '*',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  'Access-Control-Allow-Headers': 'authorization, content-type',
+  'Access-Control-Max-Age': '86400',
+  'Vary': 'Origin',
+})
+
+export const OPTIONS = (request: Request) =>
+  new NextResponse(null, { status: 204, headers: corsHeaders(request.headers.get('origin')) })
+
 // US-19/63: extension ingest. Authenticates the caller's token, validates the
 // batch (Zod + timestamp plausibility), lazily registers the device (US-07/08),
 // resolves categories (overrides win), and inserts as the user (RLS-scoped).
 export const POST = async (request: Request) => {
+  const cors = corsHeaders(request.headers.get('origin'))
+  const json = (body: unknown, status = 200) => NextResponse.json(body, { status, headers: cors })
+
   const authHeader = request.headers.get('Authorization')
   if (!authHeader)
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    return json({ error: 'Unauthorized' }, 401)
 
   const supabase = createTokenClient(authHeader.replace('Bearer ', ''))
   const { data: { user } } = await supabase.auth.getUser()
   if (!user)
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    return json({ error: 'Unauthorized' }, 401)
 
   const body = await request.json().catch(() => null)
   const parsed = ingestPayloadSchema.safeParse(body)
   if (!parsed.success)
-    return NextResponse.json({ error: 'Invalid payload', issues: parsed.error.issues }, { status: 400 })
+    return json({ error: 'Invalid payload', issues: parsed.error.issues }, 400)
 
   const { clientId, platform, label, events } = parsed.data
 
@@ -39,7 +56,7 @@ export const POST = async (request: Request) => {
       .select('id')
       .single()
     if (deviceError || !created)
-      return NextResponse.json({ error: deviceError?.message ?? 'Device registration failed' }, { status: 500 })
+      return json({ error: deviceError?.message ?? 'Device registration failed' }, 500)
     deviceId = created.id
   }
   else {
@@ -75,8 +92,8 @@ export const POST = async (request: Request) => {
   if (rows.length) {
     const { error } = await supabase.from('raw_events').insert(rows)
     if (error)
-      return NextResponse.json({ error: error.message }, { status: 500 })
+      return json({ error: error.message }, 500)
   }
 
-  return NextResponse.json({ inserted: rows.length, dropped: events.length - rows.length, deviceId })
+  return json({ inserted: rows.length, dropped: events.length - rows.length, deviceId })
 }
