@@ -13,6 +13,13 @@ export interface DomainSlice {
   pct: number
 }
 
+export interface PageSlice {
+  url: string
+  title: string
+  dur: string
+  pct: number
+}
+
 export interface FocusBlock {
   label: string
   range: string
